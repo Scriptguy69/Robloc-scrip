@@ -1,34 +1,52 @@
--- Grow a Garden 2 Dupe Script - Delta Executor (Simple Version)
--- Copy entire line into Delta: loadstring(game:HttpGet("https://raw.githubusercontent.com/Scriptguy69/Robloc-scrip/main/delta_dupe.lua"))()
+-- Grow a Garden 2 Ultra Simple Dupe - Delta Executor
+-- loadstring(game:HttpGet("https://raw.githubusercontent.com/Scriptguy69/Robloc-scrip/main/delta_dupe.lua"))()
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local Backpack = LocalPlayer:WaitForChild("Backpack")
 
--- Function to duplicate seeds
-local function dupeItem(itemName, amount)
-    local backpack = LocalPlayer:FindFirstChild("Backpack")
-    if not backpack then
-        return "Error: Backpack not found"
+-- Main dupe function
+function dupe(itemName, count)
+    -- Search in multiple locations
+    local item = Backpack:FindFirstChild(itemName)
+    
+    if not item then
+        -- Try searching in character
+        local char = LocalPlayer.Character
+        if char then
+            item = char:FindFirstChild(itemName)
+        end
     end
     
-    local originalItem = backpack:FindFirstChild(itemName)
-    if not originalItem then
-        return "❌ Item not found: " .. itemName
+    if not item then
+        -- Try recursive search
+        item = LocalPlayer:FindFirstChildOfClass("Model")
+        if item then
+            item = item:FindFirstChild(itemName)
+        end
     end
     
-    local success = 0
-    for i = 1, amount do
-        local clone = originalItem:Clone()
-        clone.Parent = backpack
-        success = success + 1
+    if not item then
+        warn("❌ Item '" .. itemName .. "' not found in Backpack or Character")
+        return false
     end
     
-    return "✅ Successfully cloned " .. success .. "x " .. itemName
+    -- Clone the item
+    local cloned = 0
+    for i = 1, count do
+        pcall(function()
+            local clone = item:Clone()
+            clone.Parent = Backpack
+            cloned = cloned + 1
+        end)
+    end
+    
+    print("✅ Duped " .. cloned .. "x " .. itemName)
+    return true
 end
 
--- Global function - use this!
-getgenv().dupe = function(itemName, amount)
-    return dupeItem(itemName, amount)
-end
+-- Set global function
+getgenv().dupe = dupe
 
-print("✅ Script loaded! Use: getgenv().dupe('bamboo', 200)")
+print("✅ Script loaded!")
+print("Use: getgenv().dupe('bamboo', 200)")
