@@ -1,0 +1,196 @@
+-- Grow a Garden 2 Dupe Script
+-- Für Roblox Studio und Delta Executor auf mobilen Geräten
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- Erstelle eine RemoteFunction für loadstring Ausführung
+local executeRemote = Instance.new("RemoteFunction")
+executeRemote.Name = "ExecuteScript"
+executeRemote.Parent = ReplicatedStorage
+
+-- Funktion zur Ausführung von Skripten über loadstring
+executeRemote.OnServerInvoke = function(player, scriptCode)
+    if player == LocalPlayer then
+        local success, result = pcall(function()
+            return loadstring(scriptCode)()
+        end)
+        
+        if success then
+            return "Erfolgreich ausgeführt: " .. tostring(result)
+        else
+            return "Fehler: " .. tostring(result)
+        end
+    else
+        return "Zugriff verweigert"
+    end
+end
+
+-- Duplizierungsfunktion für Samen
+local function duplicateSeeds(seedName, amount)
+    local seed = ReplicatedStorage:FindFirstChild(seedName)
+    if not seed then
+        return "Samen nicht gefunden: " .. seedName
+    end
+    
+    for i = 1, amount do
+        local newSeed = seed:Clone()
+        newSeed.Parent = LocalPlayer.Backpack
+    end
+    
+    return amount .. " " .. seedName .. " Samen dupliziert"
+end
+
+-- Duplizierungsfunktion für Haustiere
+local function duplicatePets(petName, amount)
+    local pet = ReplicatedStorage:FindFirstChild(petName)
+    if not pet then
+        return "Haustier nicht gefunden: " .. petName
+    end
+    
+    for i = 1, amount do
+        local newPet = pet:Clone()
+        newPet.Parent = LocalPlayer.Backpack
+    end
+    
+    return amount .. " " .. petName .. " Haustiere dupliziert"
+end
+
+-- Befehle registrieren
+local commands = {
+    ["dupeseed"] = function(args)
+        local seedName = args[1] or "DefaultSeed"
+        local amount = tonumber(args[2]) or 10
+        return duplicateSeeds(seedName, amount)
+    end,
+    
+    ["dupepet"] = function(args)
+        local petName = args[1] or "DefaultPet"
+        local amount = tonumber(args[2]) or 5
+        return duplicatePets(petName, amount)
+    end,
+    
+    ["help"] = function()
+        return "Verfügbare Befehle:\n" ..
+               "dupeseed [SamenName] [Anzahl] - Dupliziert Samen\n" ..
+               "dupepet [HaustierName] [Anzahl] - Dupliziert Haustiere\n" ..
+               "help - Zeigt diese Hilfe an"
+    end
+}
+
+-- Funktion zur Verarbeitung von Befehlen
+local function processCommand(command)
+    local parts = {}
+    for part in command:gmatch("%S+") do
+        table.insert(parts, part)
+    end
+    
+    local cmd = parts[1]:lower()
+    local args = {}
+    
+    for i = 2, #parts do
+        table.insert(args, parts[i])
+    end
+    
+    if commands[cmd] then
+        return commands[cmd](args)
+    else
+        return "Unbekannter Befehl: " .. cmd .. ". Gib 'help' ein für verfügbare Befehle."
+    end
+end
+
+-- Client-seitige Funktion zum Senden von Befehlen
+local function sendCommand(command)
+    return executeRemote:InvokeServer(command)
+end
+
+-- Beispiel-Befehle (könnten über eine UI oder Chat-Befehle aufgerufen werden)
+-- sendCommand("dupeseed TomatoSeed 20")
+-- sendCommand("dupepet Dog 5")
+-- sendCommand("help")
+
+-- Für Delta Executor auf mobilen Geräten
+if game:GetService("RunService"):IsClient() then
+    -- Erstelle eine einfache UI für mobile Geräte
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "DupeGUI"
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+    
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0, 300, 0, 200)
+    Frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+    Frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.2)
+    Frame.Parent = ScreenGui
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 30)
+    Title.Position = UDim2.new(0, 0, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = "Grow a Garden 2 Dupe Tool"
+    Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.Font = Enum.Font.SourceSansBold
+    Parent = Frame
+    
+    local TextBox = Instance.new("TextBox")
+    TextBox.Size = UDim2.new(1, -20, 0, 30)
+    TextBox.Position = UDim2.new(0, 10, 0, 50)
+    TextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.3)
+    TextBox.TextColor3 = Color3.new(1, 1, 1)
+    TextBox.PlaceholderText = "Befehl eingeben..."
+    Parent = Frame
+    
+    local ExecuteButton = Instance.new("TextButton")
+    ExecuteButton.Size = UDim2.new(0, 100, 0, 30)
+    ExecuteButton.Position = UDim2.new(0, 10, 0, 100)
+    ExecuteButton.BackgroundColor3 = Color3.new(0.2, 0.5, 0.2)
+    ExecuteButton.TextColor3 = Color3.new(1, 1, 1)
+    ExecuteButton.Text = "Ausführen"
+    Parent = Frame
+    
+    local HelpButton = Instance.new("TextButton")
+    HelpButton.Size = UDim2.new(0, 100, 0, 30)
+    HelpButton.Position = UDim2.new(0, 120, 0, 100)
+    HelpButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.5)
+    HelpButton.TextColor3 = Color3.new(1, 1, 1)
+    HelpButton.Text = "Hilfe"
+    Parent = Frame
+    
+    local OutputLabel = Instance.new("TextLabel")
+    OutputLabel.Size = UDim2.new(1, -20, 0, 60)
+    OutputLabel.Position = UDim2.new(0, 10, 0, 140)
+    OutputLabel.BackgroundTransparency = 1
+    OutputLabel.TextColor3 = Color3.new(1, 1, 1)
+    OutputLabel.Text = ""
+    OutputLabel.TextWrapped = true
+    OutputLabel.Font = Enum.Font.SourceSans
+    OutputLabel.TextSize = 14
+    Parent = Frame
+    
+    -- Button-Funktionen
+    ExecuteButton.MouseButton1Click:Connect(function()
+        local command = TextBox.Text
+        if command and command ~= "" then
+            local result = processCommand(command)
+            OutputLabel.Text = result
+        end
+    end)
+    
+    HelpButton.MouseButton1Click:Connect(function()
+        TextBox.Text = "help"
+        local result = processCommand("help")
+        OutputLabel.Text = result
+    end)
+    
+    -- Für Delta Executor loadstring-Funktion
+    getgenv().executeCommand = function(command)
+        return processCommand(command)
+    end
+end
+
+return {
+    sendCommand = sendCommand,
+    processCommand = processCommand,
+    duplicateSeeds = duplicateSeeds,
+    duplicatePets = duplicatePets
+}
