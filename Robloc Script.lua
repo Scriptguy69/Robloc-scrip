@@ -1,63 +1,54 @@
--- Grow a Garden 2 Dupe Script
--- Für Roblox Studio und Delta Executor auf mobilen Geräten
+-- Grow a Garden 2 Dupe Script - Delta Executor Edition
+-- Optimized for Mobile Execution
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
 
--- Erstelle eine RemoteFunction für loadstring Ausführung
-local executeRemote = Instance.new("RemoteFunction")
-executeRemote.Name = "ExecuteScript"
-executeRemote.Parent = ReplicatedStorage
+-- ==================== DUPE FUNCTIONS ====================
 
--- Funktion zur Ausführung von Skripten über loadstring
-executeRemote.OnServerInvoke = function(player, scriptCode)
-    if player == LocalPlayer then
-        local success, result = pcall(function()
-            return loadstring(scriptCode)()
-        end)
-        
-        if success then
-            return "Erfolgreich ausgeführt: " .. tostring(result)
-        else
-            return "Fehler: " .. tostring(result)
-        end
-    else
-        return "Zugriff verweigert"
-    end
-end
-
--- Duplizierungsfunktion für Samen
 local function duplicateSeeds(seedName, amount)
-    local seed = ReplicatedStorage:FindFirstChild(seedName)
-    if not seed then
-        return "Samen nicht gefunden: " .. seedName
+    local backpack = LocalPlayer:WaitForChild("Backpack")
+    local itemToFind = backpack:FindFirstChild(seedName)
+    
+    if not itemToFind then
+        return "❌ Samen nicht gefunden: " .. seedName
     end
     
+    local cloned = 0
     for i = 1, amount do
-        local newSeed = seed:Clone()
-        newSeed.Parent = LocalPlayer.Backpack
+        pcall(function()
+            local clone = itemToFind:Clone()
+            clone.Parent = backpack
+            cloned = cloned + 1
+        end)
     end
     
-    return amount .. " " .. seedName .. " Samen dupliziert"
+    return "✅ " .. cloned .. "x " .. seedName .. " dupliziert"
 end
 
--- Duplizierungsfunktion für Haustiere
 local function duplicatePets(petName, amount)
-    local pet = ReplicatedStorage:FindFirstChild(petName)
-    if not pet then
-        return "Haustier nicht gefunden: " .. petName
+    local backpack = LocalPlayer:WaitForChild("Backpack")
+    local itemToFind = backpack:FindFirstChild(petName)
+    
+    if not itemToFind then
+        return "❌ Haustier nicht gefunden: " .. petName
     end
     
+    local cloned = 0
     for i = 1, amount do
-        local newPet = pet:Clone()
-        newPet.Parent = LocalPlayer.Backpack
+        pcall(function()
+            local clone = itemToFind:Clone()
+            clone.Parent = backpack
+            cloned = cloned + 1
+        end)
     end
     
-    return amount .. " " .. petName .. " Haustiere dupliziert"
+    return "✅ " .. cloned .. "x " .. petName .. " dupliziert"
 end
 
--- Befehle registrieren
+-- ==================== COMMAND PROCESSOR ====================
+
 local commands = {
     ["dupeseed"] = function(args)
         local seedName = args[1] or "DefaultSeed"
@@ -72,18 +63,21 @@ local commands = {
     end,
     
     ["help"] = function()
-        return "Verfügbare Befehle:\n" ..
-               "dupeseed [SamenName] [Anzahl] - Dupliziert Samen\n" ..
-               "dupepet [HaustierName] [Anzahl] - Dupliziert Haustiere\n" ..
-               "help - Zeigt diese Hilfe an"
+        return "📋 VERFÜGBARE BEFEHLE:\n" ..
+               "dupeseed [Name] [Anzahl] - Samen duplizieren\n" ..
+               "dupepet [Name] [Anzahl] - Haustiere duplizieren\n" ..
+               "help - Diese Hilfe anzeigen"
     end
 }
 
--- Funktion zur Verarbeitung von Befehlen
 local function processCommand(command)
     local parts = {}
     for part in command:gmatch("%S+") do
         table.insert(parts, part)
+    end
+    
+    if #parts == 0 then
+        return "❌ Bitte geben Sie einen Befehl ein."
     end
     
     local cmd = parts[1]:lower()
@@ -96,101 +90,144 @@ local function processCommand(command)
     if commands[cmd] then
         return commands[cmd](args)
     else
-        return "Unbekannter Befehl: " .. cmd .. ". Gib 'help' ein für verfügbare Befehle."
+        return "❌ Unbekannter Befehl: " .. cmd .. "\nGib 'help' ein für verfügbare Befehle."
     end
 end
 
--- Client-seitige Funktion zum Senden von Befehlen
-local function sendCommand(command)
-    return executeRemote:InvokeServer(command)
-end
+-- ==================== UI SETUP ====================
 
--- Beispiel-Befehle (könnten über eine UI oder Chat-Befehle aufgerufen werden)
--- sendCommand("dupeseed TomatoSeed 20")
--- sendCommand("dupepet Dog 5")
--- sendCommand("help")
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- Für Delta Executor auf mobilen Geräten
-if game:GetService("RunService"):IsClient() then
-    -- Erstelle eine einfache UI für mobile Geräte
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "DupeGUI"
-    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0, 300, 0, 200)
-    Frame.Position = UDim2.new(0.5, -150, 0.5, -100)
-    Frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.2)
-    Frame.Parent = ScreenGui
-    
-    local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, 0, 0, 30)
-    Title.Position = UDim2.new(0, 0, 0, 0)
-    Title.BackgroundTransparency = 1
-    Title.Text = "Grow a Garden 2 Dupe Tool"
-    Title.TextColor3 = Color3.new(1, 1, 1)
-    Title.Font = Enum.Font.SourceSansBold
-    Parent = Frame
-    
-    local TextBox = Instance.new("TextBox")
-    TextBox.Size = UDim2.new(1, -20, 0, 30)
-    TextBox.Position = UDim2.new(0, 10, 0, 50)
-    TextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.3)
-    TextBox.TextColor3 = Color3.new(1, 1, 1)
-    TextBox.PlaceholderText = "Befehl eingeben..."
-    Parent = Frame
-    
-    local ExecuteButton = Instance.new("TextButton")
-    ExecuteButton.Size = UDim2.new(0, 100, 0, 30)
-    ExecuteButton.Position = UDim2.new(0, 10, 0, 100)
-    ExecuteButton.BackgroundColor3 = Color3.new(0.2, 0.5, 0.2)
-    ExecuteButton.TextColor3 = Color3.new(1, 1, 1)
-    ExecuteButton.Text = "Ausführen"
-    Parent = Frame
-    
-    local HelpButton = Instance.new("TextButton")
-    HelpButton.Size = UDim2.new(0, 100, 0, 30)
-    HelpButton.Position = UDim2.new(0, 120, 0, 100)
-    HelpButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.5)
-    HelpButton.TextColor3 = Color3.new(1, 1, 1)
-    HelpButton.Text = "Hilfe"
-    Parent = Frame
-    
-    local OutputLabel = Instance.new("TextLabel")
-    OutputLabel.Size = UDim2.new(1, -20, 0, 60)
-    OutputLabel.Position = UDim2.new(0, 10, 0, 140)
-    OutputLabel.BackgroundTransparency = 1
-    OutputLabel.TextColor3 = Color3.new(1, 1, 1)
-    OutputLabel.Text = ""
-    OutputLabel.TextWrapped = true
-    OutputLabel.Font = Enum.Font.SourceSans
-    OutputLabel.TextSize = 14
-    Parent = Frame
-    
-    -- Button-Funktionen
-    ExecuteButton.MouseButton1Click:Connect(function()
-        local command = TextBox.Text
-        if command and command ~= "" then
-            local result = processCommand(command)
-            OutputLabel.Text = result
-        end
-    end)
-    
-    HelpButton.MouseButton1Click:Connect(function()
-        TextBox.Text = "help"
-        local result = processCommand("help")
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DupeGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
+
+local Frame = Instance.new("Frame")
+Frame.Name = "MainFrame"
+Frame.Size = UDim2.new(0, 320, 0, 380)
+Frame.Position = UDim2.new(0.5, -160, 0.5, -190)
+Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
+Frame.BorderSizePixel = 2
+Frame.BorderColor3 = Color3.fromRGB(100, 200, 100)
+Frame.Parent = ScreenGui
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(30, 60, 30)
+Title.BackgroundTransparency = 0
+Title.Text = "🌱 Grow a Garden 2 Dupe"
+Title.TextColor3 = Color3.fromRGB(200, 255, 200)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+Title.Parent = Frame
+
+-- Command Input
+local TextBox = Instance.new("TextBox")
+TextBox.Name = "CommandInput"
+TextBox.Size = UDim2.new(1, -20, 0, 40)
+TextBox.Position = UDim2.new(0, 10, 0, 55)
+TextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+TextBox.PlaceholderText = "Befehl eingeben (z.B. dupeseed Seed 10)"
+TextBox.Font = Enum.Font.Gotham
+TextBox.TextSize = 14
+TextBox.Parent = Frame
+
+-- Execute Button
+local ExecuteButton = Instance.new("TextButton")
+ExecuteButton.Name = "ExecuteBtn"
+ExecuteButton.Size = UDim2.new(0.5, -7, 0, 40)
+ExecuteButton.Position = UDim2.new(0, 10, 0, 105)
+ExecuteButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+ExecuteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ExecuteButton.Text = "▶ Ausführen"
+ExecuteButton.Font = Enum.Font.GothamBold
+ExecuteButton.TextSize = 14
+ExecuteButton.Parent = Frame
+
+-- Help Button
+local HelpButton = Instance.new("TextButton")
+HelpButton.Name = "HelpBtn"
+HelpButton.Size = UDim2.new(0.5, -7, 0, 40)
+HelpButton.Position = UDim2.new(0.5, 4, 0, 105)
+HelpButton.BackgroundColor3 = Color3.fromRGB(100, 150, 200)
+HelpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+HelpButton.Text = "❓ Hilfe"
+HelpButton.Font = Enum.Font.GothamBold
+HelpButton.TextSize = 14
+HelpButton.Parent = Frame
+
+-- Output Label
+local OutputLabel = Instance.new("TextLabel")
+OutputLabel.Name = "Output"
+OutputLabel.Size = UDim2.new(1, -20, 0, 140)
+OutputLabel.Position = UDim2.new(0, 10, 0, 155)
+OutputLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+OutputLabel.TextColor3 = Color3.fromRGB(150, 255, 150)
+OutputLabel.Text = "🔄 Bereit..."
+OutputLabel.TextWrapped = true
+OutputLabel.Font = Enum.Font.GothamMonospace
+OutputLabel.TextSize = 12
+OutputLabel.TextXAlignment = Enum.TextXAlignment.Left
+OutputLabel.TextYAlignment = Enum.TextYAlignment.Top
+OutputLabel.Parent = Frame
+
+-- Close Button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseBtn"
+CloseButton.Size = UDim2.new(1, -20, 0, 35)
+CloseButton.Position = UDim2.new(0, 10, 0, 305)
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 80, 80)
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Text = "✕ Schließen"
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 14
+CloseButton.Parent = Frame
+
+-- ==================== BUTTON EVENTS ====================
+
+ExecuteButton.MouseButton1Click:Connect(function()
+    local command = TextBox.Text:match("^%s*(.-)%s*$") or ""
+    if command ~= "" then
+        local result = processCommand(command)
         OutputLabel.Text = result
-    end)
-    
-    -- Für Delta Executor loadstring-Funktion
-    getgenv().executeCommand = function(command)
-        return processCommand(command)
+        TextBox.Text = ""
+    else
+        OutputLabel.Text = "❌ Bitte geben Sie einen Befehl ein."
     end
-end
+end)
 
-return {
-    sendCommand = sendCommand,
-    processCommand = processCommand,
-    duplicateSeeds = duplicateSeeds,
-    duplicatePets = duplicatePets
+HelpButton.MouseButton1Click:Connect(function()
+    OutputLabel.Text = processCommand("help")
+end)
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Allow Enter key to execute
+TextBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        ExecuteButton:TriggerEvent("MouseButton1Click")
+    end
+end)
+
+-- ==================== GLOBAL FUNCTIONS ====================
+
+getgenv().DupeGUI = {
+    execute = function(command)
+        return processCommand(command)
+    end,
+    dupeSeed = duplicateSeeds,
+    dupePet = duplicatePets,
+    close = function()
+        ScreenGui:Destroy()
+    end
 }
+
+print("✅ Delta Executor Dupe Script geladen!")
+print("Nutze: getgenv().DupeGUI.execute('help') für Befehle")
