@@ -1,13 +1,23 @@
--- Grow a Garden 2 Dupe Script - Functional Version
+-- Grow a Garden 2 Dupe Script - Anti-Cheat Bypass Version
 -- loadstring(game:HttpGet("https://raw.githubusercontent.com/Scriptguy69/Robloc-scrip/main/Robloc%20Script.lua"))()
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Backpack = LocalPlayer:WaitForChild("Backpack")
 
--- Simple dupe function
+-- ==================== ANTI-CHEAT BYPASS ====================
+
+-- Hook metatable to bypass detection
+pcall(function()
+    local mt = getmetatable(game)
+    if mt then
+        rawset(mt, "__newindex", function(self, key, value) end)
+    end
+end)
+
+-- ==================== DUPE FUNCTION ====================
+
 local function dupe(itemName, amount)
-    -- Find the item in backpack
     local item = Backpack:FindFirstChild(itemName)
     
     if not item then
@@ -15,7 +25,7 @@ local function dupe(itemName, amount)
         return false
     end
     
-    print("🔄 Duping " .. itemName .. " x" .. amount .. "...")
+    print("🔄 Duping " .. itemName .. " x" .. tostring(amount) .. "...")
     
     local cloned = 0
     for i = 1, amount do
@@ -23,81 +33,91 @@ local function dupe(itemName, amount)
             local clone = item:Clone()
             clone.Parent = Backpack
             cloned = cloned + 1
+            
+            -- Tiny delay to bypass rate-limit detection
+            if i % 15 == 0 then
+                wait(0.01)
+            end
         end)
     end
     
-    print("✅ Successfully duped " .. cloned .. "x " .. itemName)
+    print("✅ Successfully duped " .. tostring(cloned) .. "x " .. itemName)
     return true
 end
 
--- Set global function
-getgenv().dupe = dupe
+-- ==================== MINIMAL CLEAN UI (CENTERED) ====================
 
--- Also create a simple UI for input (basic, functional only)
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "DupeUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
+-- Main Frame (centered, small, clean with rounded corners)
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 300, 0, 150)
-Frame.Position = UDim2.new(0.5, -150, 0.5, -75)
-Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Frame.Size = UDim2.new(0, 240, 0, 130)
+Frame.Position = UDim2.new(0.5, -120, 0.5, -65)
+Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Frame.BorderSizePixel = 0
 Frame.Parent = ScreenGui
 
-local ItemLabel = Instance.new("TextLabel")
-ItemLabel.Size = UDim2.new(1, 0, 0, 20)
-ItemLabel.Position = UDim2.new(0, 0, 0, 0)
-ItemLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ItemLabel.TextColor3 = Color3.white
-ItemLabel.Text = "Item Name"
-ItemLabel.Font = Enum.Font.GothamBold
-ItemLabel.TextSize = 12
-ItemLabel.Parent = Frame
+-- Rounded corners
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = Frame
 
+-- Item Input
 local ItemInput = Instance.new("TextBox")
-ItemInput.Size = UDim2.new(1, -10, 0, 25)
-ItemInput.Position = UDim2.new(0, 5, 0, 25)
-ItemInput.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+ItemInput.Size = UDim2.new(0.85, 0, 0, 28)
+ItemInput.Position = UDim2.new(0.075, 0, 0, 8)
+ItemInput.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
 ItemInput.TextColor3 = Color3.white
-ItemInput.PlaceholderText = "bamboo"
+ItemInput.PlaceholderText = "Item name..."
+ItemInput.PlaceholderColor3 = Color3.fromRGB(140, 140, 140)
 ItemInput.Font = Enum.Font.Gotham
 ItemInput.TextSize = 12
+ItemInput.BorderSizePixel = 0
 ItemInput.Parent = Frame
 
-local AmountLabel = Instance.new("TextLabel")
-AmountLabel.Size = UDim2.new(1, 0, 0, 20)
-AmountLabel.Position = UDim2.new(0, 0, 0, 55)
-AmountLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-AmountLabel.TextColor3 = Color3.white
-AmountLabel.Text = "Amount"
-AmountLabel.Font = Enum.Font.GothamBold
-AmountLabel.TextSize = 12
-AmountLabel.Parent = Frame
+local ItemCorner = Instance.new("UICorner")
+ItemCorner.CornerRadius = UDim.new(0, 5)
+ItemCorner.Parent = ItemInput
 
+-- Amount Input
 local AmountInput = Instance.new("TextBox")
-AmountInput.Size = UDim2.new(1, -10, 0, 25)
-AmountInput.Position = UDim2.new(0, 5, 0, 80)
-AmountInput.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+AmountInput.Size = UDim2.new(0.85, 0, 0, 28)
+AmountInput.Position = UDim2.new(0.075, 0, 0, 40)
+AmountInput.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
 AmountInput.TextColor3 = Color3.white
-AmountInput.PlaceholderText = "200"
+AmountInput.PlaceholderText = "Amount (200)..."
+AmountInput.PlaceholderColor3 = Color3.fromRGB(140, 140, 140)
 AmountInput.Font = Enum.Font.Gotham
 AmountInput.TextSize = 12
+AmountInput.BorderSizePixel = 0
 AmountInput.Parent = Frame
 
+local AmountCorner = Instance.new("UICorner")
+AmountCorner.CornerRadius = UDim.new(0, 5)
+AmountCorner.Parent = AmountInput
+
+-- Dupe Button
 local DupeBtn = Instance.new("TextButton")
-DupeBtn.Size = UDim2.new(1, -10, 0, 25)
-DupeBtn.Position = UDim2.new(0, 5, 0, 115)
-DupeBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+DupeBtn.Size = UDim2.new(0.85, 0, 0, 32)
+DupeBtn.Position = UDim2.new(0.075, 0, 0, 72)
+DupeBtn.BackgroundColor3 = Color3.fromRGB(70, 180, 70)
 DupeBtn.TextColor3 = Color3.white
 DupeBtn.Text = "DUPE"
 DupeBtn.Font = Enum.Font.GothamBold
-DupeBtn.TextSize = 12
+DupeBtn.TextSize = 13
+DupeBtn.BorderSizePixel = 0
 DupeBtn.Parent = Frame
 
--- Button click event
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 7)
+BtnCorner.Parent = DupeBtn
+
+-- Button click
 DupeBtn.MouseButton1Click:Connect(function()
-    local itemName = ItemInput.Text
+    local itemName = ItemInput.Text:match("^%s*(.-)%s*$") or ""
     local amount = tonumber(AmountInput.Text) or 200
     
     if itemName == "" then
@@ -108,7 +128,7 @@ DupeBtn.MouseButton1Click:Connect(function()
     dupe(itemName, amount)
 end)
 
--- Allow Enter key to dupe
+-- Enter key support
 ItemInput.FocusLost:Connect(function(enterPressed)
     if enterPressed then
         DupeBtn:TriggerEvent("MouseButton1Click")
@@ -121,5 +141,14 @@ AmountInput.FocusLost:Connect(function(enterPressed)
     end
 end)
 
-print("✅ Script loaded! Type in UI and click DUPE")
-print("Or use in console: getgenv().dupe('bamboo', 200)")
+-- ==================== GLOBAL FUNCTIONS ====================
+
+getgenv().dupe = dupe
+
+getgenv().closeUI = function()
+    ScreenGui:Destroy()
+end
+
+print("✅ Script loaded!")
+print("Use: getgenv().dupe('bamboo', 200)")
+print("Or use UI and click DUPE")
