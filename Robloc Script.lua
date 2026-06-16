@@ -7,7 +7,6 @@ local Backpack = LocalPlayer:WaitForChild("Backpack")
 
 -- ==================== ANTI-CHEAT BYPASS ====================
 
--- Hook metatable to bypass detection
 pcall(function()
     local mt = getmetatable(game)
     if mt then
@@ -34,7 +33,6 @@ local function dupe(itemName, amount)
             clone.Parent = Backpack
             cloned = cloned + 1
             
-            -- Tiny delay to bypass rate-limit detection
             if i % 15 == 0 then
                 wait(0.01)
             end
@@ -45,74 +43,111 @@ local function dupe(itemName, amount)
     return true
 end
 
--- ==================== MINIMAL CLEAN UI (CENTERED) ====================
+-- ==================== UI ====================
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "DupeUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
--- Main Frame (centered, small, clean with rounded corners)
+-- Main Frame
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 240, 0, 130)
-Frame.Position = UDim2.new(0.5, -120, 0.5, -65)
-Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Frame.Size = UDim2.new(0, 260, 0, 160)
+Frame.Position = UDim2.new(0.5, -130, 0.5, -80)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Frame.BorderSizePixel = 0
 Frame.Parent = ScreenGui
 
--- Rounded corners
 local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.CornerRadius = UDim.new(0, 12)
 UICorner.Parent = Frame
+
+-- Title Label
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.BackgroundColor3 = Color3.fromRGB(50, 100, 50)
+Title.TextColor3 = Color3.white
+Title.Text = "Dupe Tool"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 14
+Title.BorderSizePixel = 0
+Title.Parent = Frame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = Title
+
+-- Item Input Label
+local ItemLabel = Instance.new("TextLabel")
+ItemLabel.Size = UDim2.new(0.4, 0, 0, 20)
+ItemLabel.Position = UDim2.new(0.05, 0, 0, 35)
+ItemLabel.BackgroundTransparency = 1
+ItemLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+ItemLabel.Text = "Item:"
+ItemLabel.Font = Enum.Font.Gotham
+ItemLabel.TextSize = 11
+ItemLabel.Parent = Frame
 
 -- Item Input
 local ItemInput = Instance.new("TextBox")
-ItemInput.Size = UDim2.new(0.85, 0, 0, 28)
-ItemInput.Position = UDim2.new(0.075, 0, 0, 8)
-ItemInput.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+ItemInput.Size = UDim2.new(0.9, 0, 0, 22)
+ItemInput.Position = UDim2.new(0.05, 0, 0, 55)
+ItemInput.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 ItemInput.TextColor3 = Color3.white
-ItemInput.PlaceholderText = "Item name..."
-ItemInput.PlaceholderColor3 = Color3.fromRGB(140, 140, 140)
+ItemInput.PlaceholderText = "bamboo"
+ItemInput.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
 ItemInput.Font = Enum.Font.Gotham
-ItemInput.TextSize = 12
+ItemInput.TextSize = 11
 ItemInput.BorderSizePixel = 0
 ItemInput.Parent = Frame
 
 local ItemCorner = Instance.new("UICorner")
-ItemCorner.CornerRadius = UDim.new(0, 5)
+ItemCorner.CornerRadius = UDim.new(0, 4)
 ItemCorner.Parent = ItemInput
+
+-- Amount Input Label
+local AmountLabel = Instance.new("TextLabel")
+AmountLabel.Size = UDim2.new(0.4, 0, 0, 20)
+AmountLabel.Position = UDim2.new(0.05, 0, 0, 80)
+AmountLabel.BackgroundTransparency = 1
+AmountLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+AmountLabel.Text = "Amount:"
+AmountLabel.Font = Enum.Font.Gotham
+AmountLabel.TextSize = 11
+AmountLabel.Parent = Frame
 
 -- Amount Input
 local AmountInput = Instance.new("TextBox")
-AmountInput.Size = UDim2.new(0.85, 0, 0, 28)
-AmountInput.Position = UDim2.new(0.075, 0, 0, 40)
-AmountInput.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+AmountInput.Size = UDim2.new(0.9, 0, 0, 22)
+AmountInput.Position = UDim2.new(0.05, 0, 0, 100)
+AmountInput.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 AmountInput.TextColor3 = Color3.white
-AmountInput.PlaceholderText = "Amount (200)..."
-AmountInput.PlaceholderColor3 = Color3.fromRGB(140, 140, 140)
+AmountInput.PlaceholderText = "200"
+AmountInput.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
 AmountInput.Font = Enum.Font.Gotham
-AmountInput.TextSize = 12
+AmountInput.TextSize = 11
 AmountInput.BorderSizePixel = 0
 AmountInput.Parent = Frame
 
 local AmountCorner = Instance.new("UICorner")
-AmountCorner.CornerRadius = UDim.new(0, 5)
+AmountCorner.CornerRadius = UDim.new(0, 4)
 AmountCorner.Parent = AmountInput
 
 -- Dupe Button
 local DupeBtn = Instance.new("TextButton")
-DupeBtn.Size = UDim2.new(0.85, 0, 0, 32)
-DupeBtn.Position = UDim2.new(0.075, 0, 0, 72)
-DupeBtn.BackgroundColor3 = Color3.fromRGB(70, 180, 70)
+DupeBtn.Size = UDim2.new(0.9, 0, 0, 28)
+DupeBtn.Position = UDim2.new(0.05, 0, 0, 128)
+DupeBtn.BackgroundColor3 = Color3.fromRGB(80, 180, 80)
 DupeBtn.TextColor3 = Color3.white
 DupeBtn.Text = "DUPE"
 DupeBtn.Font = Enum.Font.GothamBold
-DupeBtn.TextSize = 13
+DupeBtn.TextSize = 12
 DupeBtn.BorderSizePixel = 0
 DupeBtn.Parent = Frame
 
 local BtnCorner = Instance.new("UICorner")
-BtnCorner.CornerRadius = UDim.new(0, 7)
+BtnCorner.CornerRadius = UDim.new(0, 6)
 BtnCorner.Parent = DupeBtn
 
 -- Button click
