@@ -1,0 +1,211 @@
+-- Grow a Garden 2 DUPE - Compact
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Backpack = LocalPlayer:WaitForChild("Backpack")
+
+-- Seed Detection
+local SeedDetector = {}
+SeedDetector.seeds = {}
+
+function SeedDetector:Scan()
+    local seeds = {}
+    for _, item in pairs(Backpack:GetChildren()) do
+        local name = item.Name:lower()
+        if name:find("seed") or name:find("plant") or name:find("fruit") or name:find("flower") then
+            if not table.find(seeds, item.Name) then
+                table.insert(seeds, item.Name)
+            end
+        end
+    end
+    self.seeds = seeds
+    return seeds
+end
+
+SeedDetector:Scan()
+
+-- Dupe Engine
+local DupeEngine = {}
+DupeEngine.duping = false
+
+function DupeEngine:Dupe(itemName, amount)
+    if self.duping then return false end
+    self.duping = true
+    
+    local item = Backpack:FindFirstChild(itemName)
+    if not item then self.duping = false return false end
+    
+    for i = 1, amount do
+        pcall(function()
+            item:Clone().Parent = Backpack
+        end)
+        if i % 20 == 0 then wait(0.005) end
+    end
+    
+    self.duping = false
+    return true
+end
+
+-- UI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DupeCompact"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 280, 0, 300)
+Frame.Position = UDim2.new(0.5, -140, 0.5, -150)
+Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+Frame.BorderSizePixel = 0
+Frame.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 12)
+Corner.Parent = Frame
+
+local Stroke = Instance.new("UIStroke")
+Stroke.Color = Color3.fromRGB(100, 200, 100)
+Stroke.Thickness = 2
+Stroke.Parent = Frame
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
+Title.Text = "🌱 DUPE TOOL"
+Title.TextColor3 = Color3.white
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 14
+Title.BorderSizePixel = 0
+Title.Parent = Frame
+
+-- Seeds List
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Size = UDim2.new(1, -10, 0, 120)
+ScrollFrame.Position = UDim2.new(0, 5, 0, 45)
+ScrollFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.ScrollBarThickness = 4
+ScrollFrame.Parent = Frame
+
+local ListLayout = Instance.new("UIListLayout")
+ListLayout.Padding = UDim.new(0, 3)
+ListLayout.Parent = ScrollFrame
+
+local function PopulateSeeds()
+    for _, child in pairs(ScrollFrame:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    
+    for _, seed in pairs(SeedDetector.seeds) do
+        local Btn = Instance.new("TextButton")
+        Btn.Size = UDim2.new(1, 0, 0, 25)
+        Btn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+        Btn.TextColor3 = Color3.white
+        Btn.Text = "✓ " .. seed
+        Btn.Font = Enum.Font.Gotham
+        Btn.TextSize = 10
+        Btn.BorderSizePixel = 0
+        Btn.Parent = ScrollFrame
+        
+        Btn.MouseButton1Click:Connect(function()
+            SelectedLabel.Text = "Selected: " .. seed
+            _G.SelectedSeed = seed
+        end)
+    end
+end
+
+PopulateSeeds()
+
+-- Selected Display
+local SelectedLabel = Instance.new("TextLabel")
+SelectedLabel.Size = UDim2.new(1, -10, 0, 25)
+SelectedLabel.Position = UDim2.new(0, 5, 0, 170)
+SelectedLabel.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+SelectedLabel.TextColor3 = Color3.fromRGB(100, 200, 100)
+SelectedLabel.Text = "Selected: None"
+SelectedLabel.Font = Enum.Font.Gotham
+SelectedLabel.TextSize = 10
+SelectedLabel.BorderSizePixel = 0
+SelectedLabel.Parent = Frame
+
+-- Amount Input
+local AmountLabel = Instance.new("TextLabel")
+AmountLabel.Size = UDim2.new(0.5, 0, 0, 20)
+AmountLabel.Position = UDim2.new(0, 5, 0, 200)
+AmountLabel.BackgroundTransparency = 1
+AmountLabel.Text = "Amount:"
+AmountLabel.TextColor3 = Color3.white
+AmountLabel.Font = Enum.Font.Gotham
+AmountLabel.TextSize = 10
+AmountLabel.Parent = Frame
+
+local AmountInput = Instance.new("TextBox")
+AmountInput.Size = UDim2.new(0.4, 0, 0, 20)
+AmountInput.Position = UDim2.new(0.55, 0, 0, 200)
+AmountInput.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+AmountInput.TextColor3 = Color3.white
+AmountInput.Text = "200"
+AmountInput.Font = Enum.Font.Gotham
+AmountInput.TextSize = 10
+AmountInput.BorderSizePixel = 0
+AmountInput.Parent = Frame
+
+-- Quick Buttons
+local QuickFrame = Instance.new("Frame")
+QuickFrame.Size = UDim2.new(1, -10, 0, 25)
+QuickFrame.Position = UDim2.new(0, 5, 0, 225)
+QuickFrame.BackgroundTransparency = 1
+QuickFrame.Parent = Frame
+
+for i, val in pairs({100, 500, 1000, 5000}) do
+    local QuickBtn = Instance.new("TextButton")
+    QuickBtn.Size = UDim2.new(0.22, 0, 1, 0)
+    QuickBtn.Position = UDim2.new((i-1) * 0.25, 0, 0, 0)
+    QuickBtn.BackgroundColor3 = Color3.fromRGB(70, 100, 70)
+    QuickBtn.TextColor3 = Color3.white
+    QuickBtn.Text = tostring(val)
+    QuickBtn.Font = Enum.Font.Gotham
+    QuickBtn.TextSize = 9
+    QuickBtn.BorderSizePixel = 0
+    QuickBtn.Parent = QuickFrame
+    
+    QuickBtn.MouseButton1Click:Connect(function()
+        AmountInput.Text = tostring(val)
+    end)
+end
+
+-- Dupe Button
+local DupeBtn = Instance.new("TextButton")
+DupeBtn.Size = UDim2.new(1, -10, 0, 35)
+DupeBtn.Position = UDim2.new(0, 5, 0, 255)
+DupeBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+DupeBtn.TextColor3 = Color3.black
+DupeBtn.Text = "🚀 DUPE NOW"
+DupeBtn.Font = Enum.Font.GothamBold
+DupeBtn.TextSize = 12
+DupeBtn.BorderSizePixel = 0
+DupeBtn.Parent = Frame
+
+DupeBtn.MouseButton1Click:Connect(function()
+    if not _G.SelectedSeed then return end
+    DupeEngine:Dupe(_G.SelectedSeed, tonumber(AmountInput.Text) or 200)
+end)
+
+-- Refresh Button
+local RefreshBtn = Instance.new("TextButton")
+RefreshBtn.Size = UDim2.new(1, -10, 0, 20)
+RefreshBtn.Position = UDim2.new(0, 5, 0, 278)
+RefreshBtn.BackgroundColor3 = Color3.fromRGB(70, 100, 150)
+RefreshBtn.TextColor3 = Color3.white
+RefreshBtn.Text = "🔄 Refresh"
+RefreshBtn.Font = Enum.Font.Gotham
+RefreshBtn.TextSize = 9
+RefreshBtn.BorderSizePixel = 0
+RefreshBtn.Parent = Frame
+
+RefreshBtn.MouseButton1Click:Connect(function()
+    SeedDetector:Scan()
+    PopulateSeeds()
+end)
+
+print("✅ DUPE TOOL LOADED - Select seed and click DUPE NOW")
